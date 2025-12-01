@@ -1,0 +1,73 @@
+{
+  "summary": "Phân tích 15 đánh giá từ khách hàng với điểm trung bình 4.1/5. 73% khách hàng hài lòng, 7% chưa hài lòng.",
+  "totalReviews": 15,
+  "averageRating": "4.1",
+  "sentiment": {
+    "positive": "73",
+    "neutral": "20",
+    "negative": "7"
+  },
+  "keywords": [
+    {
+      "word": "mèo",
+      "count": 10,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "thích",
+      "count": 7,
+      "sentiment": "positive"
+    },
+    {
+      "word": "chất",
+      "count": 5,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "lượng",
+      "count": 5,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "nhà",
+      "count": 5,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "thức",
+      "count": 4,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "mình",
+      "count": 4,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "ăn.",
+      "count": 4,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "hiệu",
+      "count": 4,
+      "sentiment": "neutral"
+    },
+    {
+      "word": "pate",
+      "count": 4,
+      "sentiment": "neutral"
+    }
+  ],
+  "insights": [
+    "Sản phẩm Pate mèo NEKKO GRAVY Tuna & Shrimp - Cá ngừ và Tôm được đánh giá cao về chất lượng",
+    "Sản phẩm Cát vệ sinh mèo Aatas Bentonite Cat Liter được đánh giá cao về chất lượng",
+    "Sản phẩm Thức ăn mèo Royal Canin HAIR & SKIN Care - Dưỡng da và lông được đánh giá cao về chất lượng"
+  ],
+  "recommendedActions": [
+    "Duy trì chất lượng sản phẩm hiện tại",
+    "Tăng cường marketing với feedback tích cực",
+    "Phản hồi nhanh các đánh giá tiêu cực"
+  ],
+  "analyzedAt": "2025-11-22T03:11:27.529Z"
+}
