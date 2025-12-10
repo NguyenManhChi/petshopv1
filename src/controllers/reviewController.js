@@ -5,10 +5,17 @@ const axios = require('axios');
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyB2cmBq2jouOUjd5C-9gmUOeClnXyhMO_o';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
-// Cache kết quả phân tích (TTL: 5 phút)
+// Cache kết quả phân tích (TTL: 1 giờ)
 let analysisCache = null;
 let cacheTime = null;
-const CACHE_TTL = 5 * 60 * 1000; // 5 phút
+const CACHE_TTL = 60 * 60 * 1000; // 1 giờ
+
+// Hàm xóa cache phân tích (gọi khi có review mới/sửa/xóa)
+const invalidateAnalysisCache = () => {
+  analysisCache = null;
+  cacheTime = null;
+  console.log('🔄 Cache phân tích đã được xóa - sẽ phân tích lại ở lần gọi tiếp theo');
+};
 
 // Create new review
 const createReview = asyncHandler(async (req, res) => {
@@ -22,6 +29,9 @@ const createReview = asyncHandler(async (req, res) => {
     rating,
     review_text,
   });
+
+  // Xóa cache phân tích để tự động phân tích lại ở lần gọi tiếp theo
+  invalidateAnalysisCache();
 
   res.status(201).json({
     success: true,
@@ -76,6 +86,9 @@ const updateReview = asyncHandler(async (req, res) => {
     review_text,
   });
 
+  // Xóa cache phân tích để tự động phân tích lại ở lần gọi tiếp theo
+  invalidateAnalysisCache();
+
   res.json({
     success: true,
     message: 'Review updated successfully',
@@ -89,6 +102,9 @@ const deleteReview = asyncHandler(async (req, res) => {
   const user_id = req.user.id;
 
   const review = await Review.delete(id, user_id);
+
+  // Xóa cache phân tích để tự động phân tích lại ở lần gọi tiếp theo
+  invalidateAnalysisCache();
 
   res.json({
     success: true,
@@ -149,6 +165,9 @@ const deleteReviewAdmin = asyncHandler(async (req, res) => {
 
   const review = await Review.delete(id, null, true);
 
+  // Xóa cache phân tích để tự động phân tích lại ở lần gọi tiếp theo
+  invalidateAnalysisCache();
+
   res.json({
     success: true,
     message: 'Review deleted successfully',
@@ -206,6 +225,9 @@ const getReviewsByRating = asyncHandler(async (req, res) => {
 // AI Analysis of all reviews
 const analyzeReviews = asyncHandler(async (req, res) => {
   console.log('🎯 analyzeReviews được gọi!');
+  console.log('📝 Request method:', req.method);
+  console.log('👤 User:', req.user);
+  console.log('🔍 Query params:', req.query);
   
   // Kiểm tra cache (nếu chưa quá 5 phút)
   if (analysisCache && cacheTime && (Date.now() - cacheTime < CACHE_TTL)) {

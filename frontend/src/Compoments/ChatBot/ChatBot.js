@@ -190,9 +190,10 @@ const ChatBot = () => {
                 {message.products && message.products.length > 0 && (
                   <div style={{ marginTop: '8px' }}>
                     {message.products.map(product => {
-                      const finalPrice =
-                        product.price - (product.discount_amount || 0);
-                      const hasDiscount = product.discount_amount > 0;
+                      const price = product.price || product.product_buy_price || 0;
+                      const discount = product.discount_amount || 0;
+                      const finalPrice = price - discount;
+                      const hasDiscount = discount > 0;
 
                       return (
                         <div
@@ -218,7 +219,7 @@ const ChatBot = () => {
                               {formatPrice(finalPrice)}
                               {hasDiscount && (
                                 <span className="chat-product-old-price">
-                                  {formatPrice(product.price)}
+                                  {formatPrice(price)}
                                 </span>
                               )}
                             </p>

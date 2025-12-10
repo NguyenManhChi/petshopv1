@@ -2,6 +2,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './Pages/Home';
+import RequireAuth from './RequireAuth';
+import LoginModal from './Compoments/LoginModal';
 import Header from './Compoments/Header';
 import { createContext, useEffect } from 'react';
 import axios from 'axios';
@@ -58,6 +60,7 @@ const Mycontext = createContext();
 
 function App() {
   const [countryList, setCountryList] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
   const [isOpenProductModal, setisOpenProductModal] = useState(false);
   const [isHeaderFooterShow, setisHeaderFooterShow] = useState(true);
@@ -86,6 +89,9 @@ function App() {
     setProduct,
   };
 
+  // Bảo vệ trang chủ: nếu chưa đăng nhập, hiển thị modal đăng nhập
+  // HomeGuard moved to separate component below
+
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -96,7 +102,7 @@ function App() {
 
               <Routes>
                 {/* Public routes */}
-                <Route path="/" exact={true} element={<Home />} />
+                <Route path="/" exact={true} element={<RequireAuth><Home /></RequireAuth>} />
                 <Route path="/listing" exact={true} element={<Listing />} />
                 <Route
                   path="/product/:id"

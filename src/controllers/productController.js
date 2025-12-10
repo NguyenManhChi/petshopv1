@@ -88,7 +88,7 @@ const createProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  const product = await Product.create({
+  const createdProduct = await Product.create({
     brand_id,
     category_id,
     product_name,
@@ -99,6 +99,9 @@ const createProduct = asyncHandler(async (req, res) => {
     images,
     variants,
   });
+
+  // Fetch the complete product with images and variants
+  const product = await Product.findById(createdProduct.id);
 
   res.status(201).json({
     success: true,

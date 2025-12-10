@@ -60,6 +60,11 @@ const AdminProducts = () => {
       };
       const response = await adminAPI.getAllProducts(params);
       if (response?.data) {
+        console.log('Products loaded:', response.data.products);
+        // Check first product's images
+        if (response.data.products?.[0]) {
+          console.log('First product images:', response.data.products[0].images);
+        }
         setProducts(response.data.products || []);
         setTotalPages(response.data.pagination?.pages || 1);
       }
@@ -203,21 +208,36 @@ const AdminProducts = () => {
 
       // Only include images and variants for new products
       if (!editingProduct) {
-        productData.images = productImages;
-        productData.variants = productVariants;
+        // Clean up images data - remove temporary id field
+        productData.images = productImages.map(img => ({
+          name: img.name,
+          value: img.value,
+        }));
+        // Clean up variants data - remove temporary id field
+        productData.variants = productVariants.map(variant => ({
+          variant_name: variant.variant_name,
+          variant_slug: variant.variant_slug,
+          price: variant.price,
+          discount_amount: variant.discount_amount,
+          is_available: variant.is_available,
+          in_stock: variant.in_stock,
+        }));
+        
+        console.log('Creating product with data:', productData);
       }
 
       if (editingProduct) {
         await adminAPI.updateProduct(editingProduct.id, productData);
         toast.success('Cập nhật sản phẩm thành công!');
       } else {
-        await adminAPI.createProduct(productData);
+        const response = await adminAPI.createProduct(productData);
+        console.log('Product created successfully:', response);
         toast.success('Tạo sản phẩm thành công!');
       }
       setShowModal(false);
       setEditingProduct(null);
       resetForm();
-      loadProducts();
+      await loadProducts(); // Ensure products are reloaded
     } catch (error) {
       console.error('Error saving product:', error);
       console.error('Error response:', error.response?.data);
@@ -382,7 +402,7 @@ const AdminProducts = () => {
         {products.map(product => (
           <tr key={product.id}>
             <td>
-              {product.images?.[0]?.value && (
+              {product.images?.[0]?.value ? (
                 <img
                   src={product.images[0].value}
                   alt={product.product_name}
@@ -392,7 +412,26 @@ const AdminProducts = () => {
                     height: '60px',
                     objectFit: 'cover',
                   }}
+                  onError={(e) => {
+                    console.error('Image load error for product:', product.id, product.images[0].value);
+                    e.target.src = 'https://via.placeholder.com/60x60?text=No+Image';
+                  }}
                 />
+              ) : (
+                <div 
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    backgroundColor: '#f0f0f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    color: '#999'
+                  }}
+                >
+                  No Image
+                </div>
               )}
             </td>
             <td>

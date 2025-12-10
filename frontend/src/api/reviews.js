@@ -118,6 +118,11 @@ export const reviewsAPI = {
   getReviewAnalytics: async () => {
     try {
       const adminToken = localStorage.getItem('adminToken');
+      if (!adminToken) {
+        console.error('Không tìm thấy admin token');
+        throw new Error('Vui lòng đăng nhập với tài khoản admin');
+      }
+      
       const response = await apiClient.get('/reviews/analyze', {
         headers: {
           Authorization: `Bearer ${adminToken}`,
@@ -126,7 +131,8 @@ export const reviewsAPI = {
       return response.data;
     } catch (error) {
       console.error('Get review analytics error:', error);
-      return false;
+      console.error('Error response:', error.response?.data);
+      throw error;
     }
   },
 

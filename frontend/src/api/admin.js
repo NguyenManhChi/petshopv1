@@ -60,6 +60,7 @@ export const adminAPI = {
   // Products Management
   getAllProducts: async params => {
     const response = await adminApiClient.get('/products', { params });
+    console.log('Admin API getAllProducts response:', response.data);
     return response.data;
   },
 

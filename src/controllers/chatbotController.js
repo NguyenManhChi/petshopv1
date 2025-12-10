@@ -79,21 +79,21 @@ const searchProducts = async (req, res, next) => {
           p.*,
           b.name as brand_name,
           c.category_name,
-          pv.price,
-          pv.discount_amount,
-          pv.in_stock,
+          COALESCE(pv.price, p.product_buy_price) as price,
+          COALESCE(pv.discount_amount, 0) as discount_amount,
+          COALESCE(pv.in_stock, 999) as in_stock,
           pi.value as image_url,
-          (pv.price - COALESCE(pv.discount_amount, 0)) as final_price
+          (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) as final_price
         FROM products p
         LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN product_variants pv ON p.id = pv.product_id
+        LEFT JOIN product_variants pv ON p.id = pv.product_id AND pv.in_stock > 0
         LEFT JOIN LATERAL (
           SELECT value FROM product_imgs 
           WHERE product_id = p.id 
           LIMIT 1
         ) pi ON true
-        WHERE pv.in_stock > 0
+        WHERE (pv.in_stock > 0 OR pv.id IS NULL)
       `;
 
       const queryParams = [];
@@ -175,7 +175,7 @@ const searchProducts = async (req, res, next) => {
         c.category_name,
         c.category_type,
         MIN(pv.price - COALESCE(pv.discount_amount, 0)) as min_price,
-        MAX(pv.price - COALESCE(pv.discount_amount, 0)) as max_price
+        MAX(COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) as max_price
       FROM products p
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN categories c ON p.category_id = c.id
@@ -261,11 +261,11 @@ CHÚ Ý: LUÔN chọn productIds, KHÔNG BAO GIỜ để trống []!`;
           p.*,
           b.name as brand_name,
           c.category_name,
-          pv.price,
-          pv.discount_amount,
-          pv.in_stock,
+          COALESCE(pv.price, p.product_buy_price) as price,
+          COALESCE(pv.discount_amount, 0) as discount_amount,
+          COALESCE(pv.in_stock, 999) as in_stock,
           pi.value as image_url,
-          (pv.price - COALESCE(pv.discount_amount, 0)) as final_price
+          (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) as final_price
         FROM products p
         LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN categories c ON p.category_id = c.id
@@ -284,11 +284,11 @@ CHÚ Ý: LUÔN chọn productIds, KHÔNG BAO GIỜ để trống []!`;
       if (priceFilter) {
         if (priceFilter.min !== undefined) {
           queryParams.push(priceFilter.min);
-          productDetailsQuery += ` AND (pv.price - COALESCE(pv.discount_amount, 0)) >= $${queryParams.length}`;
+          productDetailsQuery += ` AND (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) >= $${queryParams.length}`;
         }
         if (priceFilter.max !== undefined) {
           queryParams.push(priceFilter.max);
-          productDetailsQuery += ` AND (pv.price - COALESCE(pv.discount_amount, 0)) <= $${queryParams.length}`;
+          productDetailsQuery += ` AND (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) <= $${queryParams.length}`;
         }
       }
 
@@ -324,11 +324,11 @@ CHÚ Ý: LUÔN chọn productIds, KHÔNG BAO GIỜ để trống []!`;
           p.*,
           b.name as brand_name,
           c.category_name,
-          pv.price,
-          pv.discount_amount,
-          pv.in_stock,
+          COALESCE(pv.price, p.product_buy_price) as price,
+          COALESCE(pv.discount_amount, 0) as discount_amount,
+          COALESCE(pv.in_stock, 999) as in_stock,
           pi.value as image_url,
-          (pv.price - COALESCE(pv.discount_amount, 0)) as final_price
+          (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) as final_price
         FROM products p
         LEFT JOIN brands b ON p.brand_id = b.id
         LEFT JOIN categories c ON p.category_id = c.id
@@ -338,7 +338,7 @@ CHÚ Ý: LUÔN chọn productIds, KHÔNG BAO GIỜ để trống []!`;
           WHERE product_id = p.id 
           LIMIT 1
         ) pi ON true
-        WHERE pv.in_stock > 0
+        WHERE (pv.in_stock > 0 OR pv.id IS NULL)
         GROUP BY p.id, b.name, c.category_name, pv.price, pv.discount_amount, pv.in_stock, pi.value, final_price
         ORDER BY final_price ASC
         LIMIT 5
@@ -381,10 +381,11 @@ async function fallbackKeywordSearch(message, req, res, next) {
         b.name as brand_name,
         c.category_name,
         c.category_type,
-        pv.price,
-        pv.discount_amount,
-        pv.in_stock,
-        pi.value as image_url
+        COALESCE(pv.price, p.product_buy_price) as price,
+        COALESCE(pv.discount_amount, 0) as discount_amount,
+        COALESCE(pv.in_stock, 999) as in_stock,
+        pi.value as image_url,
+        (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) as final_price
       FROM products p
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN categories c ON p.category_id = c.id
@@ -531,9 +532,11 @@ const getPopularProducts = async (req, res, next) => {
         p.*,
         b.name as brand_name,
         c.category_name,
-        pv.price,
-        pv.discount_amount,
-        pi.value as image_url
+        COALESCE(pv.price, p.product_buy_price) as price,
+        COALESCE(pv.discount_amount, 0) as discount_amount,
+        COALESCE(pv.in_stock, 999) as in_stock,
+        pi.value as image_url,
+        (COALESCE(pv.price, p.product_buy_price) - COALESCE(pv.discount_amount, 0)) as final_price
       FROM products p
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN categories c ON p.category_id = c.id
@@ -543,6 +546,8 @@ const getPopularProducts = async (req, res, next) => {
         WHERE product_id = p.id 
         LIMIT 1
       ) pi ON true
+      WHERE (pv.in_stock > 0 OR pv.id IS NULL)
+      GROUP BY p.id, b.name, c.category_name, pv.price, pv.discount_amount, pv.in_stock, pi.value, final_price
       ORDER BY p.product_sold_quantity DESC, p.product_avg_rating DESC
       LIMIT 5
     `,
